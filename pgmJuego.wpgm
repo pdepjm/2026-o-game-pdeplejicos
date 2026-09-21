@@ -1,0 +1,18 @@
+import wollok.game.*
+import juego.*
+
+program jugar {
+
+	game.title("Wollok Hero")
+	game.width(12)
+	game.height(14)
+	game.cellSize(50)
+	game.boardGround("fondo.jpg")
+
+	keyboard.enter().onPressDo({ juego.confirmar() })
+	keyboard.up().onPressDo({ juego.tocar() })
+
+	juego.empezar()
+	game.start()
+
+}

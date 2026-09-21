@@ -1,0 +1,40 @@
+import wollok.game.*
+import juego.*
+
+describe "el recorrido entre pantallas" {
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		juego.pantalla(menu)
+		juego.empezar()
+	}
+
+	test "arranca en el menu" {
+		assert.equals(menu, juego.pantalla())
+	}
+
+	test "ENTER en el menu empieza a jugar" {
+		juego.confirmar()
+		assert.equals(jugando, juego.pantalla())
+	}
+
+	test "FLECHA ARRIBA en el menu no hace nada" {
+		juego.tocar()
+		assert.equals(menu, juego.pantalla())
+	}
+
+	test "FLECHA ARRIBA mientras se juega termina" {
+		juego.confirmar()
+		juego.tocar()
+		assert.equals(resultado, juego.pantalla())
+	}
+
+	test "ENTER en el resultado vuelve al menu" {
+		juego.confirmar()
+		juego.tocar()
+		juego.confirmar()
+		assert.equals(menu, juego.pantalla())
+	}
+
+}
