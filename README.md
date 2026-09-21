@@ -1,5 +1,7 @@
-### [Nombre del juego]
+### Wollok Hero
 
-* Integrante 1
-* Integrante 2
-* Etc...
+* Maximiliano Garbarino
+* Tomas Leonel Degese
+* Facundo Davicino
+* Agustin Bonini
+* German Iglesario
