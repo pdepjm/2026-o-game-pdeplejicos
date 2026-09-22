@@ -1,11 +1,11 @@
 import wollok.game.*
+import partida.*
+import pista.*
 import visuales.*
 import tablero.*
+import cancion.*
 
-// En cada momento hay una pantalla activa y el juego le delega todo a ella
-// cambiar de pantalla es cabmiar el objeto
-// todas las pantallas entienden los mismos metodos
-// por lo tanto ahi hay polimorfimso
+// cada pantalla decide como responder a las mismas acciones del juego
 object juego {
 
 	var property pantalla = menu
@@ -28,13 +28,19 @@ object juego {
 		pantalla.tocar()
 	}
 
+	method actualizar() {
+		pantalla.actualizar()
+	}
+
 }
 
 object menu {
 
 	const carteles = [
 		new Cartel(position = game.at(3, 10), texto = "WOLLOK HERO"),
-		new Cartel(position = game.at(2, 6), texto = "ENTER para jugar")
+		new Cartel(position = game.at(2, 8), texto = cancionDeEjemplo.nombre()),
+		new Cartel(position = game.at(2, 6), texto = "ENTER para jugar"),
+		new Cartel(position = game.at(2, 5), texto = "FLECHA ARRIBA para tocar las notas")
 	]
 
 	method entrar() {
@@ -51,26 +57,33 @@ object menu {
 
 	method tocar() {}
 
+	method actualizar() {}
+
 }
 
 object jugando {
 
-	const carteles = [
-		new Cartel(position = game.at(2, 7), texto = "FLECHA ARRIBA para terminar")
-	]
+	const elementos = [receptor, marcador]
 
 	method entrar() {
-		tablero.mostrar(carteles)
+		tablero.mostrar(elementos)
+		partida.empezar(cancionDeEjemplo)
 	}
 
 	method salir() {
-		tablero.ocultar(carteles)
+		partida.terminar()
+		tablero.ocultar(elementos)
 	}
 
 	method confirmar() {}
 
 	method tocar() {
-		juego.irA(resultado)
+		partida.tocar()
+	}
+
+	method actualizar() {
+		partida.actualizar()
+		if (partida.termino()) juego.irA(resultado)
 	}
 
 }
@@ -79,6 +92,7 @@ object resultado {
 
 	const carteles = [
 		new Cartel(position = game.at(4, 10), texto = "FIN"),
+		puntajeFinal,
 		new Cartel(position = game.at(2, 5), texto = "ENTER para volver al menu")
 	]
 
@@ -95,5 +109,7 @@ object resultado {
 	}
 
 	method tocar() {}
+
+	method actualizar() {}
 
 }

@@ -1,0 +1,94 @@
+import wollok.game.*
+import partida.*
+import nota.*
+
+object cancionDePrueba {
+
+	method nombre() = "Prueba"
+
+	method duracion() = 10000
+
+	method notas() = [new Nota(tiempo = 5000), new Nota(tiempo = 8000)]
+
+}
+
+describe "una partida" {
+
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+	}
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		self.irAlMilisegundo(0)
+		partida.empezar(cancionDePrueba)
+	}
+
+	test "arranca sin puntaje" {
+		assert.equals(0, partida.puntaje())
+	}
+
+	test "tocar justo en el momento de una nota suma puntos" {
+		self.irAlMilisegundo(5000)
+		partida.tocar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "tocar un poco antes o despues tambien cuenta como acierto" {
+		self.irAlMilisegundo(5100)
+		partida.tocar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "tocar cuando no hay ninguna nota cerca resta puntos" {
+		self.irAlMilisegundo(1000)
+		partida.tocar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "la misma nota no se puede acertar dos veces" {
+		self.irAlMilisegundo(5000)
+		partida.tocar()
+		partida.tocar()
+		assert.equals(50, partida.puntaje())
+	}
+
+	test "se acierta la nota mas cercana y la otra sigue en juego" {
+		self.irAlMilisegundo(5000)
+		partida.tocar()
+		self.irAlMilisegundo(8000)
+		partida.tocar()
+		assert.equals(200, partida.puntaje())
+	}
+
+	test "dejar pasar una nota resta puntos" {
+		self.irAlMilisegundo(5500)
+		partida.actualizar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "una nota que todavia no llego no se pierde" {
+		self.irAlMilisegundo(4000)
+		partida.actualizar()
+		assert.equals(0, partida.puntaje())
+	}
+
+	test "una nota que ya se perdio no se puede tocar" {
+		self.irAlMilisegundo(5500)
+		partida.actualizar()
+		partida.tocar()
+		assert.equals(-100, partida.puntaje())
+	}
+
+	test "la partida sigue mientras no se acabe la cancion" {
+		self.irAlMilisegundo(9000)
+		assert.notThat(partida.termino())
+	}
+
+	test "la partida termina cuando se acaba la cancion" {
+		self.irAlMilisegundo(10000)
+		assert.that(partida.termino())
+	}
+
+}

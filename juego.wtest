@@ -1,11 +1,13 @@
 import wollok.game.*
 import juego.*
+import cancion.*
 
 describe "el recorrido entre pantallas" {
 
 	method initialize() {
 		game.width(12)
 		game.height(14)
+		game.flushEvents(0)
 		juego.pantalla(menu)
 		juego.empezar()
 	}
@@ -19,20 +21,22 @@ describe "el recorrido entre pantallas" {
 		assert.equals(jugando, juego.pantalla())
 	}
 
-	test "FLECHA ARRIBA en el menu no hace nada" {
+	test "la tecla de tocar en el menu no hace nada" {
 		juego.tocar()
 		assert.equals(menu, juego.pantalla())
 	}
 
-	test "FLECHA ARRIBA mientras se juega termina" {
+	test "cuando se termina la cancion se pasa al resultado" {
 		juego.confirmar()
-		juego.tocar()
+		game.flushEvents(cancionDeEjemplo.duracion())
+		juego.actualizar()
 		assert.equals(resultado, juego.pantalla())
 	}
 
 	test "ENTER en el resultado vuelve al menu" {
 		juego.confirmar()
-		juego.tocar()
+		game.flushEvents(cancionDeEjemplo.duracion())
+		juego.actualizar()
 		juego.confirmar()
 		assert.equals(menu, juego.pantalla())
 	}

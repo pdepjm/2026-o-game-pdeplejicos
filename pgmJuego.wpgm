@@ -12,6 +12,8 @@ program jugar {
 	keyboard.enter().onPressDo({ juego.confirmar() })
 	keyboard.up().onPressDo({ juego.tocar() })
 
+	game.onTick(30, "actualizarJuego", { juego.actualizar() })
+
 	juego.empezar()
 	game.start()
 
