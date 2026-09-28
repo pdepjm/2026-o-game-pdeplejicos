@@ -4,13 +4,19 @@ import juego.*
 program jugar {
 
 	game.title("Wollok Hero")
-	game.width(12)
-	game.height(14)
+	game.width(15)
+	game.height(10)
 	game.cellSize(50)
 	game.boardGround("fondo.jpg")
 
+	// Las teclas se registran una sola vez: que hacer con ellas lo decide
+	// la pantalla que este activa
 	keyboard.enter().onPressDo({ juego.confirmar() })
 	keyboard.up().onPressDo({ juego.tocar() })
+	keyboard.down().onPressDo({ juego.bajar() })
+	keyboard.up().onReleaseDo({ juego.soltar() })
+
+	game.onTick(50, "actualizarJuego", { juego.actualizar() })
 
 	juego.empezar()
 	game.start()

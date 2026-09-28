@@ -1,0 +1,181 @@
+import wollok.game.*
+import partida.*
+import nota.*
+import pista.*
+import sonido.*
+
+object cancionDePrueba {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [new Nota(tiempo = 5000), new Nota(tiempo = 8000)]
+}
+
+object cancionConSostenida {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [new NotaSostenida(comienzo = new Nota(tiempo = 2000), duracion = 1000)]
+}
+
+describe "una partida" {
+
+	// El reloj de los tests se mueve a mano, y despues corre un tick del juego
+	// (el que hace entrar las notas al tablero y pierde las que se pasaron)
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+		partida.actualizar()
+	}
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		reproductor.proveedor(proveedorMudo)
+		game.flushEvents(0)
+		partida.empezar(cancionDePrueba)
+	}
+
+	test "tocar justo en el momento de una nota suma puntos" {
+		self.irAlMilisegundo(5000)
+		partida.tocar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "tocar un poco antes o despues tambien cuenta como acierto" {
+		self.irAlMilisegundo(5100)
+		partida.tocar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "tocar cuando no hay ninguna nota cerca resta puntos" {
+		self.irAlMilisegundo(1000)
+		partida.tocar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "dejar pasar una nota resta puntos" {
+		self.irAlMilisegundo(5500)
+		partida.actualizar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "la partida termina cuando se acaba la cancion" {
+		self.irAlMilisegundo(10000)
+		assert.that(partida.termino())
+	}
+}
+
+describe "una partida con una nota sostenida" {
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+		partida.actualizar()
+	}
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		reproductor.proveedor(proveedorMudo)
+		game.flushEvents(0)
+		partida.empezar(cancionConSostenida)
+	}
+
+	test "tocarla la agarra pero no suma puntos todavia" {
+		self.irAlMilisegundo(2000)
+		partida.tocar()
+		assert.equals(0, partida.puntaje())
+	}
+
+	test "mantenerla apretada hasta que termina suma puntos" {
+		self.irAlMilisegundo(2000)
+		partida.tocar()
+		self.irAlMilisegundo(3000)
+		partida.actualizar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "soltarla antes de que termine resta puntos" {
+		self.irAlMilisegundo(2000)
+		partida.tocar()
+		self.irAlMilisegundo(2500)
+		partida.soltar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "si nadie la agarra a tiempo se pierde" {
+		self.irAlMilisegundo(2300)
+		partida.actualizar()
+		assert.equals(-50, partida.puntaje())
+	}
+
+}
+
+// Una simple y una sostenida casi juntas: con una sola tecla hay que elegir
+object cancionMixta {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [new Nota(tiempo = 5000), new NotaSostenida(comienzo = new Nota(tiempo = 5100), duracion = 1000)]
+}
+
+describe "una partida con una simple y una sostenida juntas" {
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+		partida.actualizar()
+	}
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		reproductor.proveedor(proveedorMudo)
+		game.flushEvents(0)
+		partida.empezar(cancionMixta)
+	}
+
+	test "toca la mas cercana: si es la simple, acierta y no agarra la sostenida" {
+		self.irAlMilisegundo(5000)
+		partida.tocar()
+		partida.soltar()
+		assert.equals(100, partida.puntaje())
+	}
+
+	test "toca la mas cercana: si es la sostenida, la agarra y la simple queda sin tocar" {
+		self.irAlMilisegundo(5100)
+		partida.tocar()
+		assert.equals(0, partida.puntaje())
+		self.irAlMilisegundo(6100)
+		assert.equals(50, partida.puntaje())
+	}
+}
+
+// Una nota cercana y una lejana, en orden de tiempo como las trae una cancion
+object cancionConNotaLejana {
+	const property cercana = new Nota(tiempo = 3000)
+	const property lejana = new Nota(tiempo = 9000)
+
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [cercana, lejana]
+}
+
+describe "las notas entran al tablero de a poco" {
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+		partida.actualizar()
+	}
+
+	method initialize() {
+		game.width(12)
+		game.height(14)
+		reproductor.proveedor(proveedorMudo)
+		game.flushEvents(0)
+		partida.empezar(cancionConNotaLejana)
+	}
+
+	test "una nota que falta mucho todavia no esta en el tablero" {
+		self.irAlMilisegundo(1000)
+		assert.notThat(game.hasVisual(cancionConNotaLejana.lejana()))
+	}
+
+	test "una nota que esta por entrar por arriba ya esta en el tablero" {
+		self.irAlMilisegundo(7500)
+		assert.that(game.hasVisual(cancionConNotaLejana.lejana()))
+	}
+
+}
