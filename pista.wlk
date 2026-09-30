@@ -12,9 +12,20 @@ object pista {
 	method entraAlTablero(cuantoFalta) = self.filaPara(cuantoFalta) <= game.height() + 1
 }
 
-object carrilCentral {
-	method columna() = game.width().div(2)
+// Un carril conoce su posicion horizontal y la tecla que lo activa.
+// Por ahora solo existe el carril central, asociado a la flecha arriba.
+class Carril {
+	const posicionHorizontal
+	const teclaAsignada
+
+	method columna() = posicionHorizontal
+	method tecla() = teclaAsignada
 }
+
+const carrilCentral = new Carril(
+	posicionHorizontal = game.width().div(2),
+	teclaAsignada = "up"
+)
 
 class PosicionPrecisa {
 	// Mutables porque cada visual reusa su posicion (ver nota.wlk)

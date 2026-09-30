@@ -51,6 +51,7 @@ class NotaSostenida {
 	}
 	method fila() = if (agarrada) comienzo.position().y().max(pista.filaDeAcierto()) else comienzo.position().y()
 	method cuantoFalta() = comienzo.cuantoFalta()
+	method carril() = comienzo.carril()
 	method desfasaje() = comienzo.desfasaje()
 	method estaPorEntrar() = comienzo.estaPorEntrar()
 
