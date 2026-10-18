@@ -4,12 +4,16 @@ import pista.*
 import visuales.*
 import tablero.*
 import cancion.*
+import canciones.*
+import dificultad.*
 
 // En cada momento hay una pantalla activa y el juego le delega todo a ella, asi
-// que cambiar de pantalla es cambiar el objeto al que le hablamos. Las tres
-// entienden los mismos mensajes sin compartir ninguna clase.
+// que cambiar de pantalla es cambiar el objeto al que le hablamos
 object juego {
 	var pantalla = menuInicial
+
+	var property cancionElegida = bedGoesUp
+	var property dificultadElegida = facil
 
 	method empezar() {
 		pantalla.entrar()
@@ -25,141 +29,147 @@ object juego {
 		pantalla.confirmar()
 	}
 
-	method tocar() {
-		pantalla.tocar()
+	method tocar(unCarril) {
+		pantalla.tocar(unCarril)
 	}
 
-	method soltar() {
-		pantalla.soltar()
+	method soltar(unCarril) {
+		pantalla.soltar(unCarril)
 	}
 
-	method actualizar() {
-		pantalla.actualizar()
+	method subir() {
+		pantalla.subir()
 	}
 
 	method bajar() {
 		pantalla.bajar()
 	}
+
+	method actualizar() {
+		pantalla.actualizar()
+	}
 }
 
-object menuInicial {
-	const botones = [botonBed, botonProx1, botonProx2, botonProx3]
-	const elementos = [bannerMenuInicial] + botones
-	var indiceSeleccionado = 0
+// Entrar y salir del tablero es igual para todas. Las teclas no hacen nada por
+// defecto: cada pantalla redefine solo las que le importan
+class Pantalla {
+	method visuales()
 
 	method entrar() {
-		tablero.mostrar(elementos)
-		self.actualizarLuces()
+		tablero.mostrar(self.visuales())
 	}
 
 	method salir() {
-		tablero.ocultar(elementos)
+		tablero.ocultar(self.visuales())
 	}
 
-	method confirmar() {
-		// Los otros tres botones todavia no tienen cancion
-		if (indiceSeleccionado == 0) {
-			juego.irA(menu)
-		}
+	method confirmar() {}
+	method tocar(_unCarril) {}
+	method soltar(_unCarril) {}
+	method subir() {}
+	method bajar() {}
+	method actualizar() {}
+}
+
+// Donde se elige la cancion, con las flechas arriba y abajo
+object menuInicial inherits Pantalla {
+	const botones = [botonBed, botonDance, botonChained, botonFeelGood]
+	const elementos = [bannerMenuInicial] + botones
+
+	var indiceSeleccionado = 0
+
+	override method visuales() = elementos
+
+	override method entrar() {
+		super()
+		self.actualizarLuces()
 	}
 
-	// La flecha arriba mueve la seleccion hacia arriba
-	method tocar() {
+	override method confirmar() {
+		juego.cancionElegida(self.botonSeleccionado().cancion())
+		juego.dificultadElegida(self.botonSeleccionado().dificultad())
+		juego.irA(menu)
+	}
+
+	method botonSeleccionado() = botones.get(indiceSeleccionado)
+
+	override method subir() {
 		indiceSeleccionado = (indiceSeleccionado - 1).max(0)
 		self.actualizarLuces()
 	}
 
-	method bajar() {
+	override method bajar() {
 		indiceSeleccionado = (indiceSeleccionado + 1).min(3)
 		self.actualizarLuces()
 	}
 
 	method actualizarLuces() {
-		botones.forEach({ b => b.seleccionado(false) })
-		botones.get(indiceSeleccionado).seleccionado(true)
+		botones.forEach({ boton => boton.seleccionado(false) })
+		self.botonSeleccionado().seleccionado(true)
 	}
-
-	method soltar() {}
-	method actualizar() {}
 }
 
-object menu {
+// La cancion elegida, con la explicacion de cada flecha
+object menu inherits Pantalla {
+	const carteles = [
+		bannerInicio,
+		new CartelQueCambia(position = game.at(4, 9), texto = { juego.cancionElegida().nombre() + " - " + juego.cancionElegida().artista() + "   [" + juego.dificultadElegida().nombre() + "]" }),
+		new Cartel(position = game.at(1, 2), texto = "QUE ES CADA FLECHA"),
+		new Muestra(position = game.at(1, 1), image = "nota_arriba.png"),
+		new Cartel(position = game.at(2, 1), texto = "TOCALA"),
+		new Muestra(position = game.at(4, 1), image = "sostenida_arriba.png"),
+		new Cartel(position = game.at(5, 1), texto = "MANTENELA"),
+		new Muestra(position = game.at(8, 1), image = "trampa_arriba.png"),
+		new Cartel(position = game.at(9, 1), texto = "NO LA TOQUES"),
+		new Muestra(position = game.at(12, 1), image = "bonus_arriba.png"),
+		new Cartel(position = game.at(13, 1), texto = "VALE DOBLE")
+	]
 
-	const carteles = [bannerInicio]
+	override method visuales() = carteles
 
-	method entrar() {
-		tablero.mostrar(carteles)
-	}
-
-	method salir() {
-		tablero.ocultar(carteles)
-	}
-
-	method confirmar() {
+	override method confirmar() {
 		juego.irA(jugando)
 	}
-
-	method tocar() {}
-
-	method bajar() {}
-
-	method soltar() {}
-
-	method actualizar() {}
-
 }
 
-object jugando {
-	const elementos = [receptor, marcador]
+object jugando inherits Pantalla {
+	const elementos = receptores + [marcador, marcadorDeCombo, cartelDeBonus, cartelDePrecision]
 
-	method entrar() {
-		tablero.mostrar(elementos)
-		partida.empezar(bedGoesUp)
+	override method visuales() = elementos
+
+	override method entrar() {
+		// La velocidad se fija antes de crear las notas, porque la cola de las
+		// sostenidas se arma contando filas
+		pista.usar(juego.dificultadElegida())
+		super()
+		partida.empezar(juego.cancionElegida())
 	}
 
-	method salir() {
+	override method salir() {
 		partida.terminar()
-		tablero.ocultar(elementos)
+		super()
 	}
 
-	method confirmar() {}
-
-	method tocar() {
-		partida.tocar()
+	override method tocar(unCarril) {
+		partida.tocar(unCarril)
 	}
 
-	method bajar() {}
-
-	method soltar() {
-		partida.soltar()
+	override method soltar(unCarril) {
+		partida.soltar(unCarril)
 	}
 
-	method actualizar() {
+	override method actualizar() {
 		partida.actualizar()
 		if (partida.termino()) juego.irA(resultado)
 	}
 }
 
-object resultado {
-	const carteles = [
-		bannerFinal,
-		puntajeFinal
-	]
+object resultado inherits Pantalla {
+	const carteles = [bannerFinal, puntajeFinal]
 
-	method entrar() {
-		tablero.mostrar(carteles)
-	}
+	override method visuales() = carteles
 
-	method salir() {
-		tablero.ocultar(carteles)
-	}
-
-	method confirmar() {
+	override method confirmar() {
 		juego.irA(menuInicial)
 	}
-
-	method tocar() {}
-	method bajar() {}
-	method soltar() {}
-	method actualizar() {}
 }
