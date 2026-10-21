@@ -4,7 +4,6 @@ import pista.*
 import visuales.*
 import tablero.*
 import canciones.*
-import dificultad.*
 
 // En cada momento hay una pantalla activa y el juego le delega todo a ella, asi
 // que cambiar de pantalla es cambiar el objeto al que le hablamos
@@ -12,7 +11,6 @@ object juego {
 	var pantalla = menuInicial
 
 	var property cancionElegida = bedGoesUp
-	var property dificultadElegida = facil
 
 	method empezar() {
 		pantalla.entrar()
@@ -86,7 +84,6 @@ object menuInicial inherits Pantalla {
 
 	override method confirmar() {
 		juego.cancionElegida(self.botonSeleccionado().cancion())
-		juego.dificultadElegida(self.botonSeleccionado().dificultad())
 		juego.irA(menu)
 	}
 
@@ -112,7 +109,7 @@ object menuInicial inherits Pantalla {
 object menu inherits Pantalla {
 	const carteles = [
 		bannerInicio,
-		new CartelQueCambia(position = game.at(4, 9), texto = { juego.cancionElegida().nombre() + " - " + juego.cancionElegida().artista() + "   [" + juego.dificultadElegida().nombre() + "]" }),
+		new CartelQueCambia(position = game.at(4, 9), texto = { juego.cancionElegida().nombre() + " - " + juego.cancionElegida().artista() + "   [" + juego.cancionElegida().dificultad().nombre() + "]" }),
 		new Cartel(position = game.at(1, 2), texto = "QUE ES CADA FLECHA"),
 		new Muestra(position = game.at(1, 1), image = "nota_arriba.png"),
 		new Cartel(position = game.at(2, 1), texto = "TOCALA"),
@@ -139,7 +136,7 @@ object jugando inherits Pantalla {
 	override method entrar() {
 		// La velocidad se fija antes de crear las notas, porque la cola de las
 		// sostenidas se arma contando filas
-		pista.usar(juego.dificultadElegida())
+		pista.usar(juego.cancionElegida().dificultad())
 		super()
 		partida.empezar(juego.cancionElegida())
 	}

@@ -203,6 +203,12 @@ describe "las dificultades" {
 		assert.equals(velocidades.sortedBy({ uno, otro => uno > otro }), velocidades)
 	}
 
+	test "cada boton obtiene la dificultad de su cancion" {
+		assert.that([botonBed, botonDance, botonChained, botonFeelGood].all({ boton =>
+			boton.dificultad() == boton.cancion().dificultad()
+		}))
+	}
+
 }
 
 describe "las flechas" {

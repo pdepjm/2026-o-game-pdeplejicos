@@ -4,7 +4,6 @@ import pista.*
 import combo.*
 import bonus.*
 import canciones.*
-import dificultad.*
 
 object bannerFinal {
 	method position() = game.at(4, 3)
@@ -51,12 +50,12 @@ class Marcador {
 class BotonNivel {
 	const property position
 	const property cancion
-	const property dificultad
 	const imgNormal
 	const imgIluminado
 	var property seleccionado = false
 
 	method image() = if (seleccionado) imgIluminado else imgNormal
+	method dificultad() = cancion.dificultad()
 }
 
 // Un cartel cuyo texto se calcula cada vez que se dibuja
@@ -69,7 +68,6 @@ class CartelQueCambia {
 }
 
 const botonBed = new BotonNivel(
-	dificultad = facil,
 	position = new PosicionPrecisa(x = 5.4, y = 6),
 	cancion = bedGoesUp,
 	imgNormal = "btn_bgd_normal.png",
@@ -78,7 +76,6 @@ const botonBed = new BotonNivel(
 )
 
 const botonDance = new BotonNivel(
-	dificultad = normal,
 	position = new PosicionPrecisa(x = 5.4, y = 5),
 	cancion = danceTheNight,
 	imgNormal = "btn_danceTheNight_normal.png",
@@ -86,7 +83,6 @@ const botonDance = new BotonNivel(
 )
 
 const botonChained = new BotonNivel(
-	dificultad = dificil,
 	position = new PosicionPrecisa(x = 5.4, y = 4),
 	cancion = chainedToTheRhythm,
 	imgNormal = "btn_chainedToTheRhythm_normal.png",
@@ -94,7 +90,6 @@ const botonChained = new BotonNivel(
 )
 
 const botonFeelGood = new BotonNivel(
-	dificultad = experto,
 	position = new PosicionPrecisa(x = 5.4, y = 3),
 	cancion = feelGoodInc,
 	imgNormal = "btn_feelGoodInc_normal.png",
