@@ -7,7 +7,6 @@ import reloj.*
 import bonus.*
 import dificultad.*
 import visuales.*
-import cancion.*
 import canciones.*
 import sonido.*
 

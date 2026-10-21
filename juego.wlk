@@ -3,7 +3,6 @@ import partida.*
 import pista.*
 import visuales.*
 import tablero.*
-import cancion.*
 import canciones.*
 import dificultad.*
 
