@@ -11,9 +11,9 @@ import dificultad.*
 object bedGoesUp {
 	method nombre() = "Bed Goes Up"
 	method artista() = "Dankmus"
-	method dificultad() = facil
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 30000
+	method imagenBanner() = "banner_bedGoesUp.png"
 
 	method notas() = [
 		new NotaSimple(tiempo = 3503, carril = carrilDerecha),
@@ -88,6 +88,7 @@ object danceTheNight {
 	method dificultad() = normal
 	method archivo() = "danceTheNight50s.ogg"
 	method duracion() = 50000
+	method imagenBanner() = "banner_danceTheNight.png"
 
 	// Van en orden de tiempo (ver la nota de arriba)
 	method notas() = [
@@ -193,6 +194,7 @@ object chainedToTheRhythm {
 	method dificultad() = dificil
 	method archivo() = "chainedToTheRhythm50s.ogg"
 	method duracion() = 50000
+	method imagenBanner() = "banner_chainedToTheRhythm.png"
 
 	// Van en orden de tiempo (ver la nota de arriba)
 	method notas() = [
@@ -296,6 +298,7 @@ object feelGoodInc {
 	method dificultad() = experto
 	method archivo() = "feelGoodInc50s.ogg"
 	method duracion() = 50000
+	method imagenBanner() = "banner_feelGoodInc.png"
 
 	// Van en orden de tiempo (ver la nota de arriba)
 	method notas() = [

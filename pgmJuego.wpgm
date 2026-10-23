@@ -26,11 +26,12 @@ program jugar {
 		juego.tocar(carrilArriba)
 	})
 	keyboard.right().onPressDo({ juego.tocar(carrilDerecha) })
-
 	keyboard.left().onReleaseDo({ juego.soltar(carrilIzquierda) })
 	keyboard.down().onReleaseDo({ juego.soltar(carrilAbajo) })
 	keyboard.up().onReleaseDo({ juego.soltar(carrilArriba) })
 	keyboard.right().onReleaseDo({ juego.soltar(carrilDerecha) })
+	keyboard.q().onPressDo({ juego.irA(menuInicial) })
+	keyboard.c().onPressDo({ juego.configurar() })
 
 	game.onTick(50, "actualizarJuego", { juego.actualizar() })
 

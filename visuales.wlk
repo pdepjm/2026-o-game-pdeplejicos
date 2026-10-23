@@ -3,7 +3,9 @@ import partida.*
 import pista.*
 import combo.*
 import bonus.*
+import juego.*
 import canciones.*
+import dificultad.*
 
 object bannerFinal {
 	method position() = game.at(4, 3)
@@ -12,13 +14,15 @@ object bannerFinal {
 
 object bannerInicio {
 	method position() = game.at(4, 3)
-	method image() = "banner_inicio.png"
+	method image() = juego.cancionElegida().imagenBanner()
 }
 
 object bannerMenuInicial {
 	method position() = game.at(4, 3)
 	method image() = "banner_menu_inicial.png"
 }
+
+
 
 const blanco = "FFFFFFFF"
 
@@ -78,25 +82,24 @@ const botonBed = new BotonNivel(
 const botonDance = new BotonNivel(
 	position = new PosicionPrecisa(x = 5.4, y = 5),
 	cancion = danceTheNight,
-	imgNormal = "btn_danceTheNight_normal.png",
-	imgIluminado = "btn_danceTheNight_luz.png"
+	imgNormal = "btn_dtn_normal.jpg",
+	imgIluminado = "btn_dtn_luz.jpg"
 )
 
 const botonChained = new BotonNivel(
 	position = new PosicionPrecisa(x = 5.4, y = 4),
 	cancion = chainedToTheRhythm,
-	imgNormal = "btn_chainedToTheRhythm_normal.png",
-	imgIluminado = "btn_chainedToTheRhythm_luz.png"
+	imgNormal = "btn_ctr_normal.jpg",
+	imgIluminado = "btn_ctr_luz.jpg"
 )
 
 const botonFeelGood = new BotonNivel(
 	position = new PosicionPrecisa(x = 5.4, y = 3),
 	cancion = feelGoodInc,
-	imgNormal = "btn_feelGoodInc_normal.png",
-	imgIluminado = "btn_feelGoodInc_luz.png"
+	imgNormal = "btn_fgi_normal.jpg",
+	imgIluminado = "btn_fgi_luz.jpg"
 )
 
-// El multiplicador que tenes ahora
 object marcadorDeCombo {
 	method position() = game.at(1, 8)
 	method text() = combo.texto()
@@ -128,3 +131,48 @@ const puntajeFinal = new Marcador(
 	prefijo = "PUNTAJE: ",
 	color = blanco
 )
+
+
+class BotonDificultad {
+	const property position
+	const property dificultad
+	const textoNormal
+	const textoIluminado
+	var property seleccionado = false
+
+	method image() = if (seleccionado) textoIluminado else textoNormal
+}
+
+const botonFacil = new BotonDificultad(
+	position = new PosicionPrecisa(x = 5.4, y = 6),
+	dificultad = facil,
+	textoNormal = "btn_facil_normal.png",
+	textoIluminado = "btn_facil_luz.png",
+	seleccionado = true
+)
+
+const botonNormal = new BotonDificultad(
+	position = new PosicionPrecisa(x = 5.4, y = 5),
+	dificultad = normal,
+	textoNormal = "btn_normal_normal.png",
+	textoIluminado = "btn_normal_luz.png"
+)
+
+const botonDificil = new BotonDificultad(
+	position = new PosicionPrecisa(x = 5.4, y = 4),
+	dificultad = dificil,
+	textoNormal = "btn_dificil_normal.png",
+	textoIluminado = "btn_dificil_luz.png"
+)
+
+const botonExperto = new BotonDificultad(
+	position = new PosicionPrecisa(x = 5.4, y = 3),
+	dificultad = experto,
+	textoNormal = "btn_experto_normal.png",
+	textoIluminado = "btn_experto_luz.png"
+)
+
+object bannerConfiguracion {
+	method position() = game.at(4, 3)
+	method image() = "banner_configuracion.png" 
+}

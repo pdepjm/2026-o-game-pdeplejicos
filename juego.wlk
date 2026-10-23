@@ -4,6 +4,7 @@ import pista.*
 import visuales.*
 import tablero.*
 import canciones.*
+import dificultad.*
 
 // En cada momento hay una pantalla activa y el juego le delega todo a ella, asi
 // que cambiar de pantalla es cambiar el objeto al que le hablamos
@@ -11,6 +12,8 @@ object juego {
 	var pantalla = menuInicial
 
 	var property cancionElegida = bedGoesUp
+
+	var property dificultadElegida = facil
 
 	method empezar() {
 		pantalla.entrar()
@@ -45,6 +48,10 @@ object juego {
 	method actualizar() {
 		pantalla.actualizar()
 	}
+
+	method configurar() {
+    pantalla.configurar()
+	}
 }
 
 // Entrar y salir del tablero es igual para todas. Las teclas no hacen nada por
@@ -66,6 +73,8 @@ class Pantalla {
 	method subir() {}
 	method bajar() {}
 	method actualizar() {}
+	method configurar() {}
+
 }
 
 // Donde se elige la cancion, con las flechas arriba y abajo
@@ -98,19 +107,22 @@ object menuInicial inherits Pantalla {
 		indiceSeleccionado = (indiceSeleccionado + 1).min(3)
 		self.actualizarLuces()
 	}
+	
+	override method configurar() {
+        juego.irA(menuConfiguracion)
+    }
 
 	method actualizarLuces() {
 		botones.forEach({ boton => boton.seleccionado(false) })
 		self.botonSeleccionado().seleccionado(true)
 	}
+
 }
 
 // La cancion elegida, con la explicacion de cada flecha
 object menu inherits Pantalla {
 	const carteles = [
 		bannerInicio,
-		new CartelQueCambia(position = game.at(4, 9), texto = { juego.cancionElegida().nombre() + " - " + juego.cancionElegida().artista() + "   [" + juego.cancionElegida().dificultad().nombre() + "]" }),
-		new Cartel(position = game.at(1, 2), texto = "QUE ES CADA FLECHA"),
 		new Muestra(position = game.at(1, 1), image = "nota_arriba.png"),
 		new Cartel(position = game.at(2, 1), texto = "TOCALA"),
 		new Muestra(position = game.at(4, 1), image = "sostenida_arriba.png"),
@@ -134,9 +146,8 @@ object jugando inherits Pantalla {
 	override method visuales() = elementos
 
 	override method entrar() {
-		// La velocidad se fija antes de crear las notas, porque la cola de las
-		// sostenidas se arma contando filas
-		pista.usar(juego.cancionElegida().dificultad())
+		// dificultad general del juego (que por defecto es fácil)
+		pista.usar(juego.dificultadElegida())
 		super()
 		partida.empezar(juego.cancionElegida())
 	}
@@ -167,5 +178,43 @@ object resultado inherits Pantalla {
 
 	override method confirmar() {
 		juego.irA(menuInicial)
+	}
+}
+
+object menuConfiguracion inherits Pantalla {
+	const botones = [botonFacil, botonNormal, botonDificil, botonExperto]
+	const elementos = [bannerConfiguracion] + botones
+
+	var indiceSeleccionado = 0
+
+	override method visuales() = elementos
+
+	override method entrar() {
+		super()
+		self.actualizarLuces()
+	}
+
+	override method confirmar() {
+		// Guardamos la dificultad elegida en el juego y volvemos al menú inicial
+		const d = self.botonSeleccionado().dificultad()
+		juego.dificultadElegida(d)
+		juego.irA(menuInicial)
+	}
+
+	method botonSeleccionado() = botones.get(indiceSeleccionado)
+
+	override method subir() {
+		indiceSeleccionado = (indiceSeleccionado - 1).max(0)
+		self.actualizarLuces()
+	}
+
+	override method bajar() {
+		indiceSeleccionado = (indiceSeleccionado + 1).min(3)
+		self.actualizarLuces()
+	}
+
+	method actualizarLuces() {
+		botones.forEach({ boton => boton.seleccionado(false) })
+		self.botonSeleccionado().seleccionado(true)
 	}
 }
