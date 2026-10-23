@@ -1,6 +1,7 @@
 import wollok.game.*
 import juego.*
 import pista.*
+import visuales.*
 
 program jugar {
 
@@ -8,7 +9,7 @@ program jugar {
 	game.width(15)
 	game.height(10)
 	game.cellSize(50)
-	game.boardGround("fondo.jpg")
+	game.boardGround("fondo_luz.jpg")
 
 	// Las teclas se registran una sola vez: que hacer con ellas lo decide
 	// la pantalla que este activa

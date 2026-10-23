@@ -58,8 +58,10 @@ object juego {
 // defecto: cada pantalla redefine solo las que le importan
 class Pantalla {
 	method visuales()
+	method fondo() = "fondo_luz.png"
 
 	method entrar() {
+		game.boardGround(self.fondo()) 
 		tablero.mostrar(self.visuales())
 	}
 
@@ -80,11 +82,13 @@ class Pantalla {
 // Donde se elige la cancion, con las flechas arriba y abajo
 object menuInicial inherits Pantalla {
 	const botones = [botonBed, botonDance, botonChained, botonFeelGood]
-	const elementos = [bannerMenuInicial] + botones
-
+	// Las 4 canciones y la tuerca como opción navegable
+	const opciones = botones + [tuercaConfiguracion]
+	const elementos = [bannerMenuInicial] + opciones
 	var indiceSeleccionado = 0
 
 	override method visuales() = elementos
+
 
 	override method entrar() {
 		super()
@@ -92,11 +96,16 @@ object menuInicial inherits Pantalla {
 	}
 
 	override method confirmar() {
-		juego.cancionElegida(self.botonSeleccionado().cancion())
-		juego.irA(menu)
+		// Si está seleccionada la tuerca, vamos a configuración; sino, elegimos la canción
+		if (self.opcionSeleccionada() == tuercaConfiguracion) {
+			juego.configurar()
+		} else {
+			juego.cancionElegida(self.opcionSeleccionada().cancion())
+			juego.irA(menu)
+		}
 	}
 
-	method botonSeleccionado() = botones.get(indiceSeleccionado)
+	method opcionSeleccionada() = opciones.get(indiceSeleccionado)
 
 	override method subir() {
 		indiceSeleccionado = (indiceSeleccionado - 1).max(0)
@@ -104,17 +113,17 @@ object menuInicial inherits Pantalla {
 	}
 
 	override method bajar() {
-		indiceSeleccionado = (indiceSeleccionado + 1).min(3)
+		indiceSeleccionado = (indiceSeleccionado + 1).min(opciones.size() - 1)
 		self.actualizarLuces()
 	}
-	
+
 	override method configurar() {
         juego.irA(menuConfiguracion)
     }
 
 	method actualizarLuces() {
-		botones.forEach({ boton => boton.seleccionado(false) })
-		self.botonSeleccionado().seleccionado(true)
+		opciones.forEach({ opcion => opcion.seleccionado(false) })
+		self.opcionSeleccionada().seleccionado(true)
 	}
 
 }
@@ -143,14 +152,18 @@ object menu inherits Pantalla {
 object jugando inherits Pantalla {
 	const elementos = receptores + [marcador, marcadorDeCombo, cartelDeBonus, cartelDePrecision]
 
+	
+	override method fondo() = "fondo_luz.png"
+
 	override method visuales() = elementos
 
 	override method entrar() {
-		// dificultad general del juego (que por defecto es fácil)
-		pista.usar(juego.dificultadElegida())
-		super()
-		partida.empezar(juego.cancionElegida())
-	}
+        super() 
+        
+        // Configuración y arranque de la partida
+        pista.usar(juego.dificultadElegida())
+        partida.empezar(juego.cancionElegida())
+    }
 
 	override method salir() {
 		partida.terminar()

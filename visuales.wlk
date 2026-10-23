@@ -113,12 +113,6 @@ object cartelDeBonus {
 	method textColor() = blanco
 }
 
-// Lo ultimo que te paso: PERFECTO, BIEN, APENAS, MAL o TRAMPA!
-object cartelDePrecision {
-	method position() = game.at(12, 5)
-	method text() = partida.ultimoResultado().texto()
-	method textColor() = blanco
-}
 
 const marcador = new Marcador(
 	position = game.at(1, 9),
@@ -175,4 +169,26 @@ const botonExperto = new BotonDificultad(
 object bannerConfiguracion {
 	method position() = game.at(4, 3)
 	method image() = "banner_configuracion.png" 
+}
+
+object tuercaConfiguracion {
+	const property position = game.at(13, 0)
+	const imgNormal = "tuerca.png"
+	const imgIluminado = "tuerca_luz.png"
+	var property seleccionado = false
+
+	method image() = if (seleccionado) imgIluminado else imgNormal
+}
+
+object cartelDePrecision {
+	const property position = new PosicionPrecisa(x = 10.6, y = 7.9)
+	var imagenActual = "vacio.png" 
+
+	method image() = imagenActual
+
+	method perfecto() { imagenActual = "perfecto.png" }
+	method bien() { imagenActual = "bien.png" }
+	method mal() { imagenActual = "mal.png" }
+	method fallaste() { imagenActual = "fallaste.png" }
+	method limpiar() { imagenActual = "vacio.png" }
 }
