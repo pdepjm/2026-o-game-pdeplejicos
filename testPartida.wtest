@@ -169,9 +169,9 @@ describe "la nota amarilla" {
 	test "mientras esta prendido, el cartel lo avisa" {
 		escenario.preparar(cancionConAmarilla)
 		escenario.irAlMilisegundo(2000)
-		assert.equals("", cartelDeBonus.text())
+		assert.equals("bonus/bonus_apagado.png", cartelDeBonus.image())
 		partida.tocar(carrilIzquierda)
-		assert.equals("BONUS x2", cartelDeBonus.text())
+		assert.equals("bonus/bonus_2.png", cartelDeBonus.image())
 	}
 
 	test "el bonus se apaga solo despues de unos segundos" {

@@ -12,6 +12,7 @@ object bedGoesUp {
 	method nombre() = "Bed Goes Up"
 	method artista() = "Dankmus"
 	method archivo() = "bedGoesUp.ogg"
+	method dificultad() = facil
 	method duracion() = 30000
 	method imagenBanner() = "banner_bedGoesUp.png"
 
@@ -85,7 +86,7 @@ object bedGoesUp {
 object danceTheNight {
 	method nombre() = "Dance The Night"
 	method artista() = "Dua Lipa"
-	method dificultad() = normal
+	method dificultad() = normal  
 	method archivo() = "danceTheNight50s.ogg"
 	method duracion() = 50000
 	method imagenBanner() = "banner_danceTheNight.png"
@@ -198,13 +199,13 @@ object chainedToTheRhythm {
 
 	// Van en orden de tiempo (ver la nota de arriba)
 	method notas() = [
-		new NotaSimple(tiempo = 3165, carril = carrilArriba),
+		new NotaBonus(tiempo = 3165, carril = carrilArriba),
 		new NotaSimple(tiempo = 3792, carril = carrilDerecha),
 		new NotaSimple(tiempo = 4280, carril = carrilAbajo),
-		new NotaTrampa(tiempo = 4675, carril = carrilDerecha),
+		new NotaBonus(tiempo = 4675, carril = carrilDerecha),
 		new NotaSimple(tiempo = 5070, carril = carrilAbajo),
 		new NotaSimple(tiempo = 5696, carril = carrilAbajo),
-		new NotaSimple(tiempo = 6323, carril = carrilArriba),
+		new NotaBonus(tiempo = 6323, carril = carrilArriba),
 		new NotaSimple(tiempo = 6811, carril = carrilAbajo),
 		new NotaSimple(tiempo = 7577, carril = carrilDerecha),
 		new NotaSimple(tiempo = 8227, carril = carrilIzquierda),

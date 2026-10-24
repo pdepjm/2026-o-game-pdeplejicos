@@ -117,10 +117,12 @@ object cartelDeBonus {
 	const property position = game.at(0, 7)
 
 	method image() = 
-		if (combo.multiplicador() <= 1) {
-			"bonus/bonus_apagado.png"
-		} else {
+		if (bonus.multiplicador() > 1) {
+			"bonus/bonus_" + bonus.multiplicador() + ".png"
+		} else if (combo.multiplicador() > 1) {
 			"bonus/bonus_" + combo.multiplicador() + ".png"
+		} else {
+			"bonus/bonus_apagado.png"
 		}
 }
 
