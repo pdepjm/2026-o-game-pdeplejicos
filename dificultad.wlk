@@ -2,12 +2,12 @@
 // tablero. Cuanto menos, menos tiempo tenes para reaccionar.
 object facil {
 	method nombre() = "FACIL"
-	method msPorFila() = 180
+	method msPorFila() = 250
 }
 
 object normal {
 	method nombre() = "NORMAL"
-	method msPorFila() = 140
+	method msPorFila() = 180
 }
 
 object dificil {

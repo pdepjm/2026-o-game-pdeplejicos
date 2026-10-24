@@ -5,6 +5,7 @@ import visuales.*
 import tablero.*
 import canciones.*
 import dificultad.*
+import ranking.*
 
 // En cada momento hay una pantalla activa y el juego le delega todo a ella, asi
 // que cambiar de pantalla es cambiar el objeto al que le hablamos
@@ -52,6 +53,15 @@ object juego {
 	method configurar() {
     pantalla.configurar()
 	}
+
+	method izquierda() {
+		pantalla.izquierda()
+	}
+
+	method derecha() {
+		pantalla.derecha()
+	}
+
 }
 
 // Entrar y salir del tablero es igual para todas. Las teclas no hacen nada por
@@ -76,16 +86,19 @@ class Pantalla {
 	method bajar() {}
 	method actualizar() {}
 	method configurar() {}
+	method izquierda() {}
+	method derecha() {}
 
 }
 
 // Donde se elige la cancion, con las flechas arriba y abajo
 object menuInicial inherits Pantalla {
 	const botones = [botonBed, botonDance, botonChained, botonFeelGood]
-	// Las 4 canciones y la tuerca como opción navegable
-	const opciones = botones + [tuercaConfiguracion]
-	const elementos = [bannerMenuInicial] + opciones
+	const opciones = botones + [tuercaConfiguracion, trofeoRanking]
+	// Agregamos cartelDeBonus aquí para que se vea el bonus apagado
+	const elementos = [bannerMenuInicial, cartelDeBonus] + opciones
 	var indiceSeleccionado = 0
+	var columnaSeleccionada = 1
 
 	override method visuales() = elementos
 
@@ -96,34 +109,68 @@ object menuInicial inherits Pantalla {
 	}
 
 	override method confirmar() {
-		// Si está seleccionada la tuerca, vamos a configuración; sino, elegimos la canción
-		if (self.opcionSeleccionada() == tuercaConfiguracion) {
-			juego.configurar()
-		} else {
-			juego.cancionElegida(self.opcionSeleccionada().cancion())
-			juego.irA(menu)
+		if (columnaSeleccionada == 0) {
+			trofeoRanking.confirmar()
+		} else if (columnaSeleccionada == 1) {
+			self.opcionSeleccionada().confirmar()
+		} else if (columnaSeleccionada == 2) {
+			tuercaConfiguracion.confirmar()
+		}
+	}
+	
+	override method configurar() {
+		juego.irA(menuConfiguracion)
+	}
+
+	method opcionSeleccionada() = botones.get(indiceSeleccionado)
+
+override method subir() {
+		if (columnaSeleccionada == 1) {
+			indiceSeleccionado = (indiceSeleccionado - 1).max(0)
+			self.actualizarLuces()
 		}
 	}
 
-	method opcionSeleccionada() = opciones.get(indiceSeleccionado)
-
-	override method subir() {
-		indiceSeleccionado = (indiceSeleccionado - 1).max(0)
-		self.actualizarLuces()
-	}
-
 	override method bajar() {
-		indiceSeleccionado = (indiceSeleccionado + 1).min(opciones.size() - 1)
-		self.actualizarLuces()
+		if (columnaSeleccionada == 1) {
+			indiceSeleccionado = (indiceSeleccionado + 1).min(botones.size() - 1)
+			self.actualizarLuces()
+		}
 	}
 
-	override method configurar() {
-        juego.irA(menuConfiguracion)
-    }
+	// Navegación horizontal
+	override method izquierda() {
+		if (columnaSeleccionada == 2) {
+			columnaSeleccionada = 1
+			self.actualizarLuces()
+		} else if (columnaSeleccionada == 1) {
+			columnaSeleccionada = 0
+			self.actualizarLuces()
+		}
+	}
+
+	override method derecha() {
+		if (columnaSeleccionada == 0) {
+			columnaSeleccionada = 1
+			self.actualizarLuces()
+		} else if (columnaSeleccionada == 1) {
+			columnaSeleccionada = 2
+			self.actualizarLuces()
+		}
+	}
 
 	method actualizarLuces() {
-		opciones.forEach({ opcion => opcion.seleccionado(false) })
-		self.opcionSeleccionada().seleccionado(true)
+		botones.forEach({ boton => boton.seleccionado(false) })
+		trofeoRanking.seleccionado(false)
+		tuercaConfiguracion.seleccionado(false)
+
+		if (columnaSeleccionada == 0) {
+			trofeoRanking.seleccionado(true)
+		} else if (columnaSeleccionada == 1) {
+			self.opcionSeleccionada().seleccionado(true)
+		} else if (columnaSeleccionada == 2) {
+			tuercaConfiguracion.seleccionado(true)
+		}
 	}
 
 }
@@ -132,6 +179,7 @@ object menuInicial inherits Pantalla {
 object menu inherits Pantalla {
 	const carteles = [
 		bannerInicio,
+		cartelDeBonus, 
 		new Muestra(position = game.at(1, 1), image = "nota_arriba.png"),
 		new Cartel(position = game.at(2, 1), texto = "TOCALA"),
 		new Muestra(position = game.at(4, 1), image = "sostenida_arriba.png"),
@@ -180,12 +228,15 @@ object jugando inherits Pantalla {
 
 	override method actualizar() {
 		partida.actualizar()
-		if (partida.termino()) juego.irA(resultado)
+		if (partida.termino()){
+			juego.irA(resultado)
+			ranking.registrarPuntaje(partida.puntaje())
+		}
 	}
 }
 
 object resultado inherits Pantalla {
-	const carteles = [bannerFinal, puntajeFinal]
+	const carteles = [bannerFinal, puntajeFinal, cartelDeBonus]
 
 	override method visuales() = carteles
 

@@ -33,6 +33,14 @@ program jugar {
 	keyboard.right().onReleaseDo({ juego.soltar(carrilDerecha) })
 	keyboard.q().onPressDo({ juego.irA(menuInicial) })
 	keyboard.c().onPressDo({ juego.configurar() })
+	keyboard.left().onPressDo({ 
+		juego.izquierda()
+		juego.tocar(carrilIzquierda) 
+	})
+	keyboard.right().onPressDo({ 
+		juego.derecha()
+		juego.tocar(carrilDerecha) 
+	})
 
 	game.onTick(50, "actualizarJuego", { juego.actualizar() })
 

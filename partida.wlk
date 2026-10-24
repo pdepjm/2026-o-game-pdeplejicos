@@ -111,15 +111,9 @@ object partida {
     }
 
     // Método auxiliar para traducir la precisión del juego a la imagen del televisor
-    method actualizarCartelPrecision(precision) {
-        if (precision == perfecto) {
-            cartelDePrecision.perfecto()
-        } else if (precision == bien) {
-            cartelDePrecision.bien()
-        } else {
-            cartelDePrecision.mal() // Para "apenas" u otras tolerancias
-        }
-    }
+	method actualizarCartelPrecision(precision) {
+		precision.actualizarCartel()
+	}
 
 	method acertarConBonus(nota) {
 		bonus.prender()

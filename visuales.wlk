@@ -6,6 +6,7 @@ import bonus.*
 import juego.*
 import canciones.*
 import dificultad.*
+import ranking.*
 
 object bannerFinal {
 	method position() = game.at(4, 3)
@@ -60,6 +61,10 @@ class BotonNivel {
 
 	method image() = if (seleccionado) imgIluminado else imgNormal
 	method dificultad() = cancion.dificultad()
+	method confirmar() {
+		juego.cancionElegida(cancion)
+		juego.irA(menu)
+	}
 }
 
 // Un cartel cuyo texto se calcula cada vez que se dibuja
@@ -77,6 +82,7 @@ const botonBed = new BotonNivel(
 	imgNormal = "btn_bgd_normal.png",
 	imgIluminado = "btn_bgd_luz.png",
 	seleccionado = true
+	
 )
 
 const botonDance = new BotonNivel(
@@ -108,9 +114,14 @@ object marcadorDeCombo {
 
 // Avisa mientras la nota amarilla tiene prendido el bonus
 object cartelDeBonus {
-	method position() = game.at(1, 7)
-	method text() = bonus.texto()
-	method textColor() = blanco
+	const property position = game.at(0, 7)
+
+	method image() = 
+		if (combo.multiplicador() <= 1) {
+			"bonus/bonus_apagado.png"
+		} else {
+			"bonus/bonus_" + combo.multiplicador() + ".png"
+		}
 }
 
 
@@ -168,7 +179,8 @@ const botonExperto = new BotonDificultad(
 
 object bannerConfiguracion {
 	method position() = game.at(4, 3)
-	method image() = "banner_configuracion.png" 
+	method image() = "banner_configuracion.png"
+
 }
 
 object tuercaConfiguracion {
@@ -178,6 +190,9 @@ object tuercaConfiguracion {
 	var property seleccionado = false
 
 	method image() = if (seleccionado) imgIluminado else imgNormal
+	method confirmar() {
+		juego.irA(menuConfiguracion)
+	}
 }
 
 object cartelDePrecision {
@@ -192,3 +207,66 @@ object cartelDePrecision {
 	method fallaste() { imagenActual = "fallaste.png" }
 	method limpiar() { imagenActual = "vacio.png" }
 }
+
+object trofeoRanking {
+	const property position = game.at(1, 0)
+	const imgNormal = "trofeo_normal.png"
+	const imgIluminado = "trofeo_luz.png"
+	var property seleccionado = false
+
+	method image() = if (seleccionado) imgIluminado else imgNormal
+	
+	method confirmar() {
+		juego.irA(ranking)
+	}
+}
+object bannerRanking {
+	method position() = game.at(4, 1)
+	method image() = "banner_ranking3.png" 
+}
+
+object robot {
+	const property position = new PosicionPrecisa(x = 10.8, y = 8.1)
+	const imagenes = [
+        "bot/robot_contento.png", 
+        "bot/robot_duda.png", 
+        "bot/robot_enojo.png", 
+        "bot/robot_serio.png"
+    ]
+    var indice = 0
+
+    method image() = imagenes.get(indice)
+
+    method siguiente() {
+        indice = (indice + 1) % imagenes.size()
+    }
+
+    method reiniciar() {
+        indice = 0
+    }
+}
+
+// Clase base para las posiciones visuales del ranking
+class PosicionRanking {
+	const property position
+	var property image = "btn_normal.png"
+}
+
+object posicionUno inherits PosicionRanking(position = new PosicionPrecisa(x = 5.4, y = 5)) {}
+object posicionDos inherits PosicionRanking(position = new PosicionPrecisa(x = 5.4, y = 4)) {}
+object posicionTres inherits PosicionRanking(position = new PosicionPrecisa(x = 5.4, y = 3)) {}
+object posicionCuatro inherits PosicionRanking(position = new PosicionPrecisa(x = 5.4, y = 2)) {}
+object posicionCinco inherits PosicionRanking(position = new PosicionPrecisa(x = 5.4, y = 1)) {}
+
+// Clase para los textos del ranking
+class CartelRanking {
+	const property position
+	var property text = ""
+	method textColor() = blanco
+}
+
+object cartelRanking1 inherits CartelRanking(position = new PosicionPrecisa(x = 7.5, y = 4.8)) {}
+object cartelRanking2 inherits CartelRanking(position = new PosicionPrecisa(x = 7.5, y = 3.8)) {}
+object cartelRanking3 inherits CartelRanking(position = new PosicionPrecisa(x = 7.5, y = 2.8)) {}
+object cartelRanking4 inherits CartelRanking(position = new PosicionPrecisa(x = 7.5, y = 1.8)) {}
+object cartelRanking5 inherits CartelRanking(position = new PosicionPrecisa(x = 7.5, y = 0.8)) {}
