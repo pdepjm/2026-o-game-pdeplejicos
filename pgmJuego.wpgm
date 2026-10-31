@@ -1,7 +1,6 @@
 import wollok.game.*
 import juego.*
 import pista.*
-import visuales.*
 
 program jugar {
 
@@ -9,7 +8,7 @@ program jugar {
 	game.width(15)
 	game.height(10)
 	game.cellSize(50)
-	game.boardGround("fondo_luz.jpg")
+	game.boardGround("fondo_luz.png")
 
 	// Las teclas se registran una sola vez: que hacer con ellas lo decide
 	// la pantalla que este activa
@@ -17,7 +16,10 @@ program jugar {
 
 	// Una tecla por carril. Arriba y abajo ademas mueven la seleccion del menu:
 	// cada pantalla atiende el mensaje que le importa y deja pasar el otro
-	keyboard.left().onPressDo({ juego.tocar(carrilIzquierda) })
+	keyboard.left().onPressDo({
+		juego.anterior()
+		juego.tocar(carrilIzquierda)
+	})
 	keyboard.down().onPressDo({
 		juego.bajar()
 		juego.tocar(carrilAbajo)
@@ -26,21 +28,15 @@ program jugar {
 		juego.subir()
 		juego.tocar(carrilArriba)
 	})
-	keyboard.right().onPressDo({ juego.tocar(carrilDerecha) })
+	keyboard.right().onPressDo({
+		juego.siguiente()
+		juego.tocar(carrilDerecha)
+	})
+
 	keyboard.left().onReleaseDo({ juego.soltar(carrilIzquierda) })
 	keyboard.down().onReleaseDo({ juego.soltar(carrilAbajo) })
 	keyboard.up().onReleaseDo({ juego.soltar(carrilArriba) })
 	keyboard.right().onReleaseDo({ juego.soltar(carrilDerecha) })
-	keyboard.q().onPressDo({ juego.irA(menuInicial) })
-	keyboard.c().onPressDo({ juego.configurar() })
-	keyboard.left().onPressDo({ 
-		juego.izquierda()
-		juego.tocar(carrilIzquierda) 
-	})
-	keyboard.right().onPressDo({ 
-		juego.derecha()
-		juego.tocar(carrilDerecha) 
-	})
 
 	game.onTick(50, "actualizarJuego", { juego.actualizar() })
 

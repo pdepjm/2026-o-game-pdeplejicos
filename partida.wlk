@@ -4,7 +4,7 @@ import sonido.*
 import tablero.*
 import combo.*
 import bonus.*
-import visuales.*
+import estadisticas.*
 import precision.*
 
 // Las reglas y el puntaje: que pasa al acertar, al tocar de gusto, al caer en una
@@ -34,15 +34,17 @@ object partida {
 	var duracion = 0
 	var audio = sonidoMudo
 
-	method empezar(unaCancion) {
+	method empezar(unaCancion, unaDificultad) {
 		puntaje = 0
 		ultimoResultado = sinTocar
-		combo.cortar()
+		combo.reiniciar()
 		bonus.apagar()
+		estadisticas.vaciar()
 		duracion = unaCancion.duracion()
 		notas.clear()
 		porAparecer.clear()
-		porAparecer.addAll(unaCancion.notas())
+		// La dificultad es la que sabe que notas de esta cancion se juegan
+		porAparecer.addAll(unaDificultad.notasDe(unaCancion))
 		audio = reproductor.sonido(unaCancion.archivo())
 		audio.volume(volumenDeLaMusica)
 		reloj.arrancar()
@@ -100,19 +102,14 @@ object partida {
 	method visualesDeLasNotas() = notas.flatMap({ nota => nota.visuales() })
 
 	// Suma con el multiplicador que tenias, y recien ahi alarga la racha
-
 	method acertar(nota) {
-        const precision = self.precisionPara(nota)
-        ultimoResultado = precision
-        puntaje += precision.puntos() * combo.multiplicador() * bonus.multiplicador()
-        combo.sumar()
-        self.actualizarCartelPrecision(precision)
-        self.sacar(nota)
-    }
-
-    // Método auxiliar para traducir la precisión del juego a la imagen del televisor
-	method actualizarCartelPrecision(precision) {
-		precision.actualizarCartel()
+		const precision = self.precisionPara(nota)
+		ultimoResultado = precision
+		estadisticas.anotar(precision)
+		efectos.sonoUnAcierto()
+		puntaje += precision.puntos() * combo.multiplicador() * bonus.multiplicador()
+		combo.sumar()
+		self.sacar(nota)
 	}
 
 	method acertarConBonus(nota) {
@@ -125,9 +122,9 @@ object partida {
 	method errar() {
 		puntaje -= puntosPorError
 		combo.cortar()
+		estadisticas.unaErrada()
+		efectos.sonoUnError()
 		ultimoResultado = fallo
-
-		cartelDePrecision.fallaste()
 	}
 
 	method perder(nota) {
@@ -138,10 +135,9 @@ object partida {
 	method caerEnTrampa(nota) {
 		puntaje -= puntosPorTrampa
 		combo.cortar()
+		estadisticas.unaErrada()
+		efectos.sonoUnError()
 		ultimoResultado = cayoEnTrampa
-
-		cartelDePrecision.fallaste()
-
 		self.sacar(nota)
 	}
 
