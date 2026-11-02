@@ -398,8 +398,7 @@ classDiagram
 | `precision.wlk` | `perfecto`, `bien`, `apenas` y los avisos de error |
 | `dificultad.wlk` | Las cuatro velocidades de los niveles del menu |
 | `visuales.wlk` | `Cartel`, `Marcador`, `Muestra`, `BotonNivel` y los banners |
-| `canciones.wlk` | Los cuatro temas, con una lista de notas por dificultad |
-| `tablaDePuntajes.wlk` | El top 5 de cada cancion y dificultad |
+| `canciones.wlk` | Las canciones disponibles y sus notas, generadas desde charts o audios |
 | `reloj.wlk` y `sonido.wlk` | El tiempo y la musica, separados para poder testear |
 | `tablero.wlk` | Poner y sacar visuales |
 

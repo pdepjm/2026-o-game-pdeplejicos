@@ -7,18 +7,15 @@ import reloj.*
 import bonus.*
 import dificultad.*
 import visuales.*
-import juego.*
 import canciones.*
-import tablaDePuntajes.*
-import nombre.*
-import estadisticas.*
 import sonido.*
+import juego.*
 
 // Canciones cortas e inventadas, para no depender de los 30 segundos reales
 object cancionDePrueba {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [
+	method notas() = [
 		new NotaSimple(tiempo = 5000, carril = carrilIzquierda),
 		new NotaSimple(tiempo = 8000, carril = carrilDerecha)
 	]
@@ -27,20 +24,20 @@ object cancionDePrueba {
 object cancionConSostenida {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [new NotaSostenida(tiempo = 2000, carril = carrilArriba, duracion = 1000)]
+	method notas() = [new NotaSostenida(tiempo = 2000, carril = carrilArriba, duracion = 1000)]
 }
 
 object cancionConTrampa {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [new NotaTrampa(tiempo = 3000, carril = carrilAbajo)]
+	method notas() = [new NotaTrampa(tiempo = 3000, carril = carrilAbajo)]
 }
 
 // Una amarilla y, un segundo despues, una comun que tendria que valer el doble
 object cancionConAmarilla {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [
+	method notas() = [
 		new NotaBonus(tiempo = 2000, carril = carrilIzquierda),
 		new NotaSimple(tiempo = 3000, carril = carrilIzquierda)
 	]
@@ -50,7 +47,7 @@ object cancionConAmarilla {
 object cancionConAmarillaLejana {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [
+	method notas() = [
 		new NotaBonus(tiempo = 2000, carril = carrilIzquierda),
 		new NotaSimple(tiempo = 7000, carril = carrilIzquierda)
 	]
@@ -60,7 +57,7 @@ object cancionConAmarillaLejana {
 object cancionParaElCombo {
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = (1 .. 6).map({ numero => new NotaSimple(tiempo = numero * 1000, carril = carrilIzquierda) })
+	method notas() = (1 .. 6).map({ numero => new NotaSimple(tiempo = numero * 1000, carril = carrilIzquierda) })
 }
 
 // Una cerca y una lejos, en orden de tiempo como las trae una cancion
@@ -70,7 +67,7 @@ object cancionConNotaLejana {
 
 	method archivo() = "bedGoesUp.ogg"
 	method duracion() = 10000
-	method notasNormal() = [cercana, lejana]
+	method notas() = [cercana, lejana]
 }
 
 // Arma la partida y mueve el reloj a mano. Cada vez que lo movemos corre un tick
@@ -89,7 +86,20 @@ object escenario {
 		reloj.retrasoDelAudio(0)
 		pista.usar(normal)
 		game.flushEvents(0)
-		partida.empezar(unaCancion, normal)
+		partida.empezar(unaCancion)
+	}
+}
+
+describe "moverse por el menu" {
+
+	test "al volver del ranking la seleccion vuelve a los temas" {
+		game.width(15)
+		game.height(10)
+		juego.empezar()
+		juego.izquierda()
+		juego.confirmar()
+		juego.confirmar()
+		assert.that(botonBed.seleccionado())
 	}
 }
 
@@ -109,6 +119,19 @@ describe "una partida" {
 		escenario.irAlMilisegundo(5100)
 		partida.tocar(carrilIzquierda)
 		assert.equals(50, partida.puntaje())
+	}
+
+	test "un acierto justito se muestra como acierto y no como fallo" {
+		escenario.irAlMilisegundo(5100)
+		partida.tocar(carrilIzquierda)
+		assert.equals("apenas.png", cartelDePrecision.image())
+	}
+
+	test "la tele arranca apagada en cada ronda" {
+		escenario.irAlMilisegundo(5100)
+		partida.tocar(carrilIzquierda)
+		escenario.preparar(cancionDePrueba)
+		assert.equals("vacio.png", cartelDePrecision.image())
 	}
 
 	test "tocar cuando no hay ninguna nota cerca resta puntos" {
@@ -139,31 +162,22 @@ describe "una partida" {
 describe "las canciones" {
 
 	const todas = [bedGoesUp, danceTheNight, chainedToTheRhythm, feelGoodInc]
-	const dificultades = [facil, normal, dificil, experto]
 
-	method notasDe(unaCancion, unaDificultad) = unaDificultad.notasDe(unaCancion)
+	method tiemposDe(unaCancion) = unaCancion.notas().map({ nota => nota.tiempo() })
 
-	method tiemposDe(unaCancion, unaDificultad) =
-		self.notasDe(unaCancion, unaDificultad).map({ nota => nota.tiempo() })
 
-	test "las notas vienen en orden de tiempo, en las cuatro dificultades" {
-		assert.that(todas.all({ cancion => dificultades.all({ dificultad =>
-			self.tiemposDe(cancion, dificultad) ==
-				self.tiemposDe(cancion, dificultad).sortedBy({ uno, otro => uno < otro })
-		}) }))
+	test "las notas de las cuatro vienen en orden de tiempo" {
+		assert.that(todas.all({ cancion =>
+			self.tiemposDe(cancion) == self.tiemposDe(cancion).sortedBy({ uno, otro => uno < otro })
+		}))
 	}
 
 	test "ninguna nota sigue en juego despues de que termina su cancion" {
-		assert.that(todas.all({ cancion => dificultades.all({ dificultad =>
-			self.notasDe(cancion, dificultad).all({ nota => nota.terminaEn() < cancion.duracion() })
-		}) }))
-	}
-
-	test "cuanto mas dificil, mas notas tiene el tema" {
 		assert.that(todas.all({ cancion =>
-			self.notasDe(cancion, facil).size() < self.notasDe(cancion, experto).size()
+			cancion.notas().all({ nota => nota.terminaEn() < cancion.duracion() })
 		}))
 	}
+
 
 }
 
@@ -182,9 +196,9 @@ describe "la nota amarilla" {
 	test "mientras esta prendido, el cartel lo avisa" {
 		escenario.preparar(cancionConAmarilla)
 		escenario.irAlMilisegundo(2000)
-		assert.equals("", cartelDeBonus.text())
+		assert.equals("bonus/bonus_apagado.png", cartelDeBonus.image())
 		partida.tocar(carrilIzquierda)
-		assert.equals("BONUS x2", cartelDeBonus.text())
+		assert.equals("bonus/bonus_2.png", cartelDeBonus.image())
 	}
 
 	test "el bonus se apaga solo despues de unos segundos" {
@@ -210,91 +224,16 @@ describe "las dificultades" {
 		assert.that(enExperto > enFacil)
 	}
 
-	test "las flechas de los costados cambian la dificultad" {
-		(1 .. 5).forEach({ vuelta => menuInicial.anterior() })
-		assert.equals(facil, juego.dificultadElegida())
-		menuInicial.siguiente()
-		assert.equals(normal, juego.dificultadElegida())
+	test "los cuatro niveles del menu van de mas facil a mas dificil" {
+		const velocidades = [botonBed, botonDance, botonChained, botonFeelGood]
+			.map({ boton => boton.dificultad().msPorFila() })
+		assert.equals(velocidades.sortedBy({ uno, otro => uno > otro }), velocidades)
 	}
 
-	test "la dificultad no se pasa del ultimo nivel" {
-		(1 .. 10).forEach({ vuelta => menuInicial.siguiente() })
-		assert.equals(experto, juego.dificultadElegida())
-	}
-
-}
-
-describe "la tabla de puntajes" {
-
-	method initialize() {
-		tablaDePuntajes.vaciar()
-	}
-
-	test "se queda con los cinco mejores, de mayor a menor" {
-		[300, 900, 100, 700, 500, 800].forEach({ puntos =>
-			tablaDePuntajes.anotar(bedGoesUp, facil, puntos, "MAX")
-		})
-		assert.equals([900, 800, 700, 500, 300],
-			tablaDePuntajes.mejores(bedGoesUp, facil).map({ puntaje => puntaje.puntos() }))
-	}
-
-	test "cada cancion y dificultad lleva la suya" {
-		tablaDePuntajes.anotar(bedGoesUp, facil, 100, "MAX")
-		tablaDePuntajes.anotar(bedGoesUp, experto, 900, "TOM")
-		tablaDePuntajes.anotar(danceTheNight, facil, 700, "AGU")
-		assert.equals([100], tablaDePuntajes.mejores(bedGoesUp, facil).map({ puntaje => puntaje.puntos() }))
-	}
-
-	test "cada renglon muestra el nombre y el puntaje, y los vacios van con guiones" {
-		tablaDePuntajes.anotar(bedGoesUp, facil, 400, "MAX")
-		assert.equals("1.  MAX  400", tablaDePuntajes.renglon(1, bedGoesUp, facil))
-		assert.equals("2.  ---", tablaDePuntajes.renglon(2, bedGoesUp, facil))
-	}
-
-}
-
-describe "el nombre del jugador" {
-
-	test "las flechas de arriba y abajo cambian la letra" {
-		const antes = nombre.texto()
-		nombre.siguienteLetra()
-		assert.notEquals(antes, nombre.texto())
-		nombre.letraAnterior()
-		assert.equals(antes, nombre.texto())
-	}
-
-	test "las de los costados mueven de letra, sin pasarse de las tres" {
-		(1 .. 5).forEach({ vuelta => nombre.irALaDerecha() })
-		nombre.siguienteLetra()
-		assert.equals(nombre.texto().charAt(2), nombre.texto().charAt(2))
-		(1 .. 5).forEach({ vuelta => nombre.irALaIzquierda() })
-		nombre.letraAnterior()
-		assert.equals(3, nombre.texto().size())
-	}
-
-}
-
-describe "el resumen de la ronda" {
-
-	method initialize() {
-		escenario.preparar(cancionDePrueba)
-	}
-
-	test "cuenta las notas por como les pegaste" {
-		escenario.irAlMilisegundo(5000)
-		partida.tocar(carrilIzquierda)
-		escenario.irAlMilisegundo(8100)
-		partida.tocar(carrilDerecha)
-		assert.equals(1, estadisticas.perfectas())
-		assert.equals(1, estadisticas.apenas())
-	}
-
-	test "cuenta los errores y se acuerda de la racha mas larga" {
-		escenario.irAlMilisegundo(5000)
-		partida.tocar(carrilIzquierda)
-		partida.tocar(carrilIzquierda)
-		assert.equals(1, estadisticas.erradas())
-		assert.equals(1, estadisticas.rachaMaxima())
+	test "cada boton obtiene la dificultad de su cancion" {
+		assert.that([botonBed, botonDance, botonChained, botonFeelGood].all({ boton =>
+			boton.dificultad() == boton.cancion().dificultad()
+		}))
 	}
 
 }

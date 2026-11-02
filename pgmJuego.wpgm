@@ -1,6 +1,7 @@
 import wollok.game.*
 import juego.*
 import pista.*
+import visuales.*
 
 program jugar {
 
@@ -17,7 +18,7 @@ program jugar {
 	// Una tecla por carril. Arriba y abajo ademas mueven la seleccion del menu:
 	// cada pantalla atiende el mensaje que le importa y deja pasar el otro
 	keyboard.left().onPressDo({
-		juego.anterior()
+		juego.izquierda()
 		juego.tocar(carrilIzquierda)
 	})
 	keyboard.down().onPressDo({
@@ -29,7 +30,7 @@ program jugar {
 		juego.tocar(carrilArriba)
 	})
 	keyboard.right().onPressDo({
-		juego.siguiente()
+		juego.derecha()
 		juego.tocar(carrilDerecha)
 	})
 
@@ -37,6 +38,8 @@ program jugar {
 	keyboard.down().onReleaseDo({ juego.soltar(carrilAbajo) })
 	keyboard.up().onReleaseDo({ juego.soltar(carrilArriba) })
 	keyboard.right().onReleaseDo({ juego.soltar(carrilDerecha) })
+	keyboard.q().onPressDo({ juego.irA(menuInicial) })
+	keyboard.c().onPressDo({ juego.configurar() })
 
 	game.onTick(50, "actualizarJuego", { juego.actualizar() })
 

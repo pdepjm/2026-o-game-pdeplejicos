@@ -4,7 +4,7 @@ import sonido.*
 import tablero.*
 import combo.*
 import bonus.*
-import estadisticas.*
+import visuales.*
 import precision.*
 
 // Las reglas y el puntaje: que pasa al acertar, al tocar de gusto, al caer en una
@@ -34,17 +34,15 @@ object partida {
 	var duracion = 0
 	var audio = sonidoMudo
 
-	method empezar(unaCancion, unaDificultad) {
+	method empezar(unaCancion) {
 		puntaje = 0
-		ultimoResultado = sinTocar
-		combo.reiniciar()
+		self.mostrar(sinTocar)
+		combo.cortar()
 		bonus.apagar()
-		estadisticas.vaciar()
 		duracion = unaCancion.duracion()
 		notas.clear()
 		porAparecer.clear()
-		// La dificultad es la que sabe que notas de esta cancion se juegan
-		porAparecer.addAll(unaDificultad.notasDe(unaCancion))
+		porAparecer.addAll(unaCancion.notas())
 		audio = reproductor.sonido(unaCancion.archivo())
 		audio.volume(volumenDeLaMusica)
 		reloj.arrancar()
@@ -102,14 +100,19 @@ object partida {
 	method visualesDeLasNotas() = notas.flatMap({ nota => nota.visuales() })
 
 	// Suma con el multiplicador que tenias, y recien ahi alarga la racha
+
 	method acertar(nota) {
 		const precision = self.precisionPara(nota)
-		ultimoResultado = precision
-		estadisticas.anotar(precision)
-		efectos.sonoUnAcierto()
 		puntaje += precision.puntos() * combo.multiplicador() * bonus.multiplicador()
 		combo.sumar()
+		self.mostrar(precision)
 		self.sacar(nota)
+	}
+
+	// Lo ultimo que te paso: queda guardado y se enciende en la tele del fondo
+	method mostrar(unResultado) {
+		ultimoResultado = unResultado
+		unResultado.actualizarCartel()
 	}
 
 	method acertarConBonus(nota) {
@@ -122,9 +125,7 @@ object partida {
 	method errar() {
 		puntaje -= puntosPorError
 		combo.cortar()
-		estadisticas.unaErrada()
-		efectos.sonoUnError()
-		ultimoResultado = fallo
+		self.mostrar(fallo)
 	}
 
 	method perder(nota) {
@@ -135,9 +136,7 @@ object partida {
 	method caerEnTrampa(nota) {
 		puntaje -= puntosPorTrampa
 		combo.cortar()
-		estadisticas.unaErrada()
-		efectos.sonoUnError()
-		ultimoResultado = cayoEnTrampa
+		self.mostrar(cayoEnTrampa)
 		self.sacar(nota)
 	}
 
