@@ -8,3 +8,6 @@ log
 
 # Dependencies
 node_modules
+
+# Scripts que generan las canciones, viven afuera del repo
+/tools

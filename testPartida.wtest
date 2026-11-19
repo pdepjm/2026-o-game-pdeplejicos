@@ -1,0 +1,345 @@
+import wollok.game.*
+import partida.*
+import nota.*
+import pista.*
+import combo.*
+import reloj.*
+import bonus.*
+import dificultad.*
+import visuales.*
+import canciones.*
+import sonido.*
+import juego.*
+
+// Canciones cortas e inventadas, para no depender de los 30 segundos reales
+object cancionDePrueba {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [
+		new NotaSimple(tiempo = 5000, carril = carrilIzquierda),
+		new NotaSimple(tiempo = 8000, carril = carrilDerecha)
+	]
+}
+
+object cancionConSostenida {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [new NotaSostenida(tiempo = 2000, carril = carrilArriba, duracion = 1000)]
+}
+
+object cancionConTrampa {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [new NotaTrampa(tiempo = 3000, carril = carrilAbajo)]
+}
+
+// Una amarilla y, un segundo despues, una comun que tendria que valer el doble
+object cancionConAmarilla {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [
+		new NotaBonus(tiempo = 2000, carril = carrilIzquierda),
+		new NotaSimple(tiempo = 3000, carril = carrilIzquierda)
+	]
+}
+
+// Igual, pero la segunda llega cuando el bonus ya se tiene que haber apagado
+object cancionConAmarillaLejana {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [
+		new NotaBonus(tiempo = 2000, carril = carrilIzquierda),
+		new NotaSimple(tiempo = 7000, carril = carrilIzquierda)
+	]
+}
+
+// Seis notas seguidas en el mismo carril, para ver crecer la racha
+object cancionParaElCombo {
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = (1 .. 6).map({ numero => new NotaSimple(tiempo = numero * 1000, carril = carrilIzquierda) })
+}
+
+// Una cerca y una lejos, en orden de tiempo como las trae una cancion
+object cancionConNotaLejana {
+	const property cercana = new NotaSimple(tiempo = 3000, carril = carrilIzquierda)
+	const property lejana = new NotaSimple(tiempo = 9000, carril = carrilDerecha)
+
+	method archivo() = "bedGoesUp.ogg"
+	method duracion() = 10000
+	method notas() = [cercana, lejana]
+}
+
+// Arma la partida y mueve el reloj a mano. Cada vez que lo movemos corre un tick
+// del juego, que es el que hace entrar las notas y pierde las que se pasaron
+object escenario {
+	method irAlMilisegundo(milisegundo) {
+		game.flushEvents(milisegundo)
+		partida.actualizar()
+	}
+
+	method preparar(unaCancion) {
+		game.width(15)
+		game.height(10)
+		reproductor.proveedor(proveedorMudo)
+		// En los tests no suena nada, asi que no hay que esperar a que arranque el audio
+		reloj.retrasoDelAudio(0)
+		pista.usar(normal)
+		game.flushEvents(0)
+		partida.empezar(unaCancion)
+	}
+}
+
+describe "moverse por el menu" {
+
+	test "al volver del ranking la seleccion vuelve a los temas" {
+		game.width(15)
+		game.height(10)
+		juego.empezar()
+		juego.izquierda()
+		juego.confirmar()
+		juego.confirmar()
+		assert.that(botonBed.seleccionado())
+	}
+}
+
+describe "una partida" {
+
+	method initialize() {
+		escenario.preparar(cancionDePrueba)
+	}
+
+	test "tocar justo en el momento de una nota es un acierto perfecto" {
+		escenario.irAlMilisegundo(5000)
+		partida.tocar(carrilIzquierda)
+		assert.equals(150, partida.puntaje())
+	}
+
+	test "tocar un poco despues sigue siendo acierto, pero vale menos" {
+		escenario.irAlMilisegundo(5100)
+		partida.tocar(carrilIzquierda)
+		assert.equals(50, partida.puntaje())
+	}
+
+	test "un acierto justito se muestra como acierto y no como fallo" {
+		escenario.irAlMilisegundo(5100)
+		partida.tocar(carrilIzquierda)
+		assert.equals("apenas.png", cartelDePrecision.image())
+	}
+
+	test "la tele arranca apagada en cada ronda" {
+		escenario.irAlMilisegundo(5100)
+		partida.tocar(carrilIzquierda)
+		escenario.preparar(cancionDePrueba)
+		assert.equals("vacio.png", cartelDePrecision.image())
+	}
+
+	test "tocar cuando no hay ninguna nota cerca resta puntos" {
+		escenario.irAlMilisegundo(1000)
+		partida.tocar(carrilIzquierda)
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "tocar el carril equivocado no acierta la nota del otro" {
+		escenario.irAlMilisegundo(5000)
+		partida.tocar(carrilDerecha)
+		assert.equals(-50, partida.puntaje())
+	}
+
+
+	test "dejar pasar una nota resta puntos" {
+		escenario.irAlMilisegundo(5500)
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "la partida termina cuando se acaba la cancion" {
+		escenario.irAlMilisegundo(10000)
+		assert.that(partida.termino())
+	}
+
+}
+
+describe "las canciones" {
+
+	const todas = [bedGoesUp, danceTheNight, chainedToTheRhythm, feelGoodInc]
+
+	method tiemposDe(unaCancion) = unaCancion.notas().map({ nota => nota.tiempo() })
+
+
+	test "las notas de las cuatro vienen en orden de tiempo" {
+		assert.that(todas.all({ cancion =>
+			self.tiemposDe(cancion) == self.tiemposDe(cancion).sortedBy({ uno, otro => uno < otro })
+		}))
+	}
+
+	test "ninguna nota sigue en juego despues de que termina su cancion" {
+		assert.that(todas.all({ cancion =>
+			cancion.notas().all({ nota => nota.terminaEn() < cancion.duracion() })
+		}))
+	}
+
+
+}
+
+describe "la nota amarilla" {
+
+
+	test "deja el bonus prendido, asi que la que sigue tambien vale el doble" {
+		escenario.preparar(cancionConAmarilla)
+		escenario.irAlMilisegundo(2000)
+		partida.tocar(carrilIzquierda)
+		escenario.irAlMilisegundo(3000)
+		partida.tocar(carrilIzquierda)
+		assert.equals(600, partida.puntaje())
+	}
+
+	test "mientras esta prendido, el cartel lo avisa" {
+		escenario.preparar(cancionConAmarilla)
+		escenario.irAlMilisegundo(2000)
+		assert.equals("bonus/bonus_apagado.png", cartelDeBonus.image())
+		partida.tocar(carrilIzquierda)
+		assert.equals("bonus/bonus_2.png", cartelDeBonus.image())
+	}
+
+	test "el bonus se apaga solo despues de unos segundos" {
+		escenario.preparar(cancionConAmarillaLejana)
+		escenario.irAlMilisegundo(2000)
+		partida.tocar(carrilIzquierda)
+		escenario.irAlMilisegundo(7000)
+		partida.tocar(carrilIzquierda)
+		assert.equals(450, partida.puntaje())
+	}
+
+}
+
+describe "las dificultades" {
+
+	test "cuanto mas dificil, mas rapido bajan las notas" {
+		pista.usar(facil)
+		const enFacil = pista.filaPara(1000)
+		pista.usar(experto)
+		const enExperto = pista.filaPara(1000)
+		// a un segundo de su momento, en experto la nota todavia esta mas arriba:
+		// le falta mas tablero por recorrer en el mismo tiempo
+		assert.that(enExperto > enFacil)
+	}
+
+}
+
+describe "las flechas" {
+
+	test "cada nota se dibuja con la flecha que apunta a su tecla" {
+		assert.equals("nota_izquierda.png", new NotaSimple(tiempo = 0, carril = carrilIzquierda).image())
+		assert.equals("sostenida_abajo.png", new NotaSostenida(tiempo = 0, carril = carrilAbajo, duracion = 500).image())
+		assert.equals("trampa_derecha.png", new NotaTrampa(tiempo = 0, carril = carrilDerecha).image())
+		assert.equals("bonus_arriba.png", new NotaBonus(tiempo = 0, carril = carrilArriba).image())
+	}
+
+}
+
+describe "una partida con una nota sostenida" {
+
+	method initialize() {
+		escenario.preparar(cancionConSostenida)
+	}
+
+	test "agarrarla todavia no suma puntos" {
+		escenario.irAlMilisegundo(2000)
+		partida.tocar(carrilArriba)
+		assert.equals(0, partida.puntaje())
+	}
+
+	test "mantenerla apretada hasta que termina suma puntos" {
+		escenario.irAlMilisegundo(2000)
+		partida.tocar(carrilArriba)
+		escenario.irAlMilisegundo(3000)
+		assert.equals(150, partida.puntaje())
+	}
+
+	test "soltarla antes de que termine resta puntos" {
+		escenario.irAlMilisegundo(2000)
+		partida.tocar(carrilArriba)
+		escenario.irAlMilisegundo(2500)
+		partida.soltar(carrilArriba)
+		assert.equals(-50, partida.puntaje())
+	}
+
+	test "si nadie la agarra a tiempo se pierde" {
+		escenario.irAlMilisegundo(2300)
+		assert.equals(-50, partida.puntaje())
+	}
+
+}
+
+describe "una partida con una nota trampa" {
+
+	method initialize() {
+		escenario.preparar(cancionConTrampa)
+	}
+
+	test "tocar una trampa resta mas que errar" {
+		escenario.irAlMilisegundo(3000)
+		partida.tocar(carrilAbajo)
+		assert.equals(-100, partida.puntaje())
+	}
+
+	test "dejar pasar una trampa no cuesta nada" {
+		escenario.irAlMilisegundo(3500)
+		assert.equals(0, partida.puntaje())
+	}
+
+
+}
+
+describe "el combo" {
+
+	method initialize() {
+		escenario.preparar(cancionParaElCombo)
+	}
+
+
+	test "a los cinco aciertos seguidos el multiplicador se duplica" {
+		(1 .. 5).forEach({ numero =>
+			escenario.irAlMilisegundo(numero * 1000)
+			partida.tocar(carrilIzquierda)
+		})
+		assert.equals(2, combo.multiplicador())
+	}
+
+	test "con el multiplicador en dos, la nota siguiente vale el doble" {
+		(1 .. 5).forEach({ numero =>
+			escenario.irAlMilisegundo(numero * 1000)
+			partida.tocar(carrilIzquierda)
+		})
+		const antes = partida.puntaje()
+		escenario.irAlMilisegundo(6000)
+		partida.tocar(carrilIzquierda)
+		assert.equals(300, partida.puntaje() - antes)
+	}
+
+	test "equivocarse corta la racha" {
+		escenario.irAlMilisegundo(1000)
+		partida.tocar(carrilIzquierda)
+		partida.tocar(carrilDerecha)
+		assert.equals(0, combo.racha())
+	}
+
+}
+
+describe "las notas entran al tablero de a poco" {
+
+	method initialize() {
+		escenario.preparar(cancionConNotaLejana)
+	}
+
+	test "una nota que falta mucho todavia no esta en el tablero" {
+		escenario.irAlMilisegundo(1000)
+		assert.notThat(game.hasVisual(cancionConNotaLejana.lejana()))
+	}
+
+	test "una nota que esta por entrar por arriba ya esta en el tablero" {
+		escenario.irAlMilisegundo(8500)
+		assert.that(game.hasVisual(cancionConNotaLejana.lejana()))
+	}
+
+}
