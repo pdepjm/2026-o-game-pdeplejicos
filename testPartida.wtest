@@ -224,18 +224,6 @@ describe "las dificultades" {
 		assert.that(enExperto > enFacil)
 	}
 
-	test "los cuatro niveles del menu van de mas facil a mas dificil" {
-		const velocidades = [botonBed, botonDance, botonChained, botonFeelGood]
-			.map({ boton => boton.dificultad().msPorFila() })
-		assert.equals(velocidades.sortedBy({ uno, otro => uno > otro }), velocidades)
-	}
-
-	test "cada boton obtiene la dificultad de su cancion" {
-		assert.that([botonBed, botonDance, botonChained, botonFeelGood].all({ boton =>
-			boton.dificultad() == boton.cancion().dificultad()
-		}))
-	}
-
 }
 
 describe "las flechas" {

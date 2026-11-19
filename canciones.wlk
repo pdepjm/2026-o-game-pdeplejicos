@@ -1,6 +1,5 @@
 import nota.*
 import pista.*
-import dificultad.*
 
 // Como se llama, con que archivo suena y que notas hay que tocar.
 //
@@ -12,7 +11,6 @@ object bedGoesUp {
 	method nombre() = "Bed Goes Up"
 	method artista() = "Dankmus"
 	method archivo() = "bedGoesUp.ogg"
-	method dificultad() = facil
 	method duracion() = 30000
 	method imagenBanner() = "banner_bedGoesUp.png"
 
@@ -86,7 +84,6 @@ object bedGoesUp {
 object danceTheNight {
 	method nombre() = "Dance The Night"
 	method artista() = "Dua Lipa"
-	method dificultad() = normal  
 	method archivo() = "danceTheNight50s.ogg"
 	method duracion() = 50000
 	method imagenBanner() = "banner_danceTheNight.png"
@@ -192,7 +189,6 @@ object danceTheNight {
 object chainedToTheRhythm {
 	method nombre() = "Chained To The Rhythm"
 	method artista() = "Katy Perry"
-	method dificultad() = dificil
 	method archivo() = "chainedToTheRhythm50s.ogg"
 	method duracion() = 50000
 	method imagenBanner() = "banner_chainedToTheRhythm.png"
@@ -296,7 +292,6 @@ object chainedToTheRhythm {
 object feelGoodInc {
 	method nombre() = "Feel Good Inc"
 	method artista() = "Gorillaz"
-	method dificultad() = experto
 	method archivo() = "feelGoodInc50s.ogg"
 	method duracion() = 50000
 	method imagenBanner() = "banner_feelGoodInc.png"

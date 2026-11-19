@@ -60,7 +60,6 @@ class BotonNivel {
 	var property seleccionado = false
 
 	method image() = if (seleccionado) imgIluminado else imgNormal
-	method dificultad() = cancion.dificultad()
 	method confirmar() {
 		juego.cancionElegida(cancion)
 		juego.irA(menu)
